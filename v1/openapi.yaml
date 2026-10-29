@@ -1,0 +1,5839 @@
+openapi: 3.0.1
+info:
+  title: FlexDeploy REST v1 Api
+  description: Index for available v1 rest APIs in FlexDeploy.  Uses basic authentication.
+    Some of these are marked as deprecated below and will be altered or removed in
+    the FlexDeploy 8.0 release. The remainder continue to be supported.
+  version: '9.0'
+servers:
+- url: /flexdeploy/rest
+  description: Local FlexDeploy server
+security:
+- Basic:
+  - write:read
+tags:
+- name: Administration - Security Group
+  description: "Groups can be accessed and modified through this API using four services:\
+    \ GET, POST, PUT, and PATCH. These four services allow for the retrieval, creation,\
+    \ complete update, and partial update of groups."
+- name: Administration - User
+  description: "Users can be accessed and modified through this API using four services:\
+    \ GET, POST, PUT, and PATCH. These four services allow for the retrieval, creation,\
+    \ complete update, and partial update of users."
+- name: Folder
+  description: Folders can be accessed and searched through this API.
+- name: Project - Package
+  description: "Project Packages can be accessed, searched, updated, and deleted through\
+    \ this API."
+- name: Project - Properties
+  description: Project Properties can be accessed and updated through this API.
+- name: Project
+  description: "Projects can be created, accessed, searched, updated, and executed\
+    \ through this API."
+- name: Project - Branch
+  description: "Project Branches can be created, accessed, searched, and updated,\
+    \ and file catalog discovery operations can be executed through this API."
+- name: Project - Version
+  description: "Project Versions can be accessed, searched, and their artifacts can\
+    \ be downloaded through this API."
+- name: Release Gates
+  description: Release Gates can be accessed through this API.
+- name: Release
+  description: "Releases can be accessed, created, and modified through this API.\
+    \ For PATCH and PUT operations, here are the guidelines:<br /><br />1. Cannot\
+    \ add a project without all required property values for that property set.<br\
+    \ /><br />2. Cannot end a release if there are running pipeline executions.<br\
+    \ /><br />3. PipelineName or PipelineId must be provided to set Pipeline Properties.<br\
+    \ /><br />4. Adding a project requires a Project ID and Project Stream ID.<br\
+    \ /><br />5. When adding a new project to the release, if no buildEnvironmentId\
+    \ is passed, then the service will attempt to initialize the BuildEnvironmentId\
+    \ if only one build Target is associated to it.<br /><br />6. For Package-based\
+    \ Deployment Projects, must provide packageName.<br /><br />7. Examples of valid\
+    \ cron expressions: https://www.freeformatter.com/cron-expression-generator-quartz.html"
+- name: Release Snapshots
+  description: "Release Snapshots can be accessed, created, and executed through this\
+    \ API."
+- name: Approval Tasks
+  description: "Approval Tasks can be accessed through this API. Each approval task\
+    \ can be one of two different types: Release and Project. The Response will vary\
+    \ accordingly."
+- name: Scheduled Tasks API
+  description: Scheduled Tasks can be accessed through this API using GET. This API
+    can also run and cancel scheduled tasks based on task id and other parameters.
+- name: Topology - Targets API
+  description: "Targets can be accessed and modified through this API using three\
+    \ services: GET, PUT, and PATCH. These three services allow for the retrieval,\
+    \ complete update, and partial update of targets."
+- name: Topology - Integrations Account
+  description: "Account instances can be accessed and modified through this API using\
+    \ four services: GET, POST, PUT, and PATCH. These four services allow for the\
+    \ retrieval, creation, complete update, and partial update of account instances."
+- name: Topology - Integration CMSInstance
+  description: "Change Management System can be accessed and modified through this\
+    \ API using four services: GET, POST, PUT, and PATCH. These four services allow\
+    \ for the retrieval, creation, complete update, and partial update of groups."
+- name: Topology - Integrations Issue Tracking System Instance
+  description: "Issue Tracking Systems can be accessed and modified through this API\
+    \ using four services: GET, POST, PUT, and PATCH. These four services allow for\
+    \ the retrieval, creation, complete update, and partial update of Issue Tracking\
+    \ Systems."
+- name: Topology - Integrations SCMInstance
+  description: "SCM Instances can be accessed and modified through this API using\
+    \ four services: GET, POST, PUT, and PATCH. These four services allow for the\
+    \ retrieval, creation, complete update, and partial update of SCM Instances."
+- name: Current User Profile
+  description: Provide information about current user.
+- name: Workflow Execution
+  description: Workflow Executions can be accessed through this API.
+- name: Workflow Request
+  description: Workflow Requests can be accessed through this API.
+paths:
+  /v1/administration/security/group:
+    get:
+      tags:
+      - Administration - Security Group
+      summary: This GET service will return a list of groups in the form of JSON objects
+        based on the query parameters group name. Groups are only returned if they
+        match all of the specified query parameters. If no query parameters are given
+        this request will return the entire list of groups.
+      operationId: searchGroups
+      parameters:
+      - name: groupName
+        in: query
+        description: "The name of the group. It's case-insensitive, searching by groupName=NAME\
+          \ is the same as searching by groupName=name"
+        allowEmptyValue: true
+        schema:
+          type: string
+        example: ExecuteWLST
+      responses:
+        "200":
+          description: Search successful and results returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFdGroupDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Administration - Security Group
+      summary: This POST service will create a new group with the same attributes
+        as the given JSON object.
+      operationId: createGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FdGroupDataObject'
+      responses:
+        "201":
+          description: Group was created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FdGroupDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/administration/security/group/{Id}:
+    get:
+      tags:
+      - Administration - Security Group
+      summary: This GET service will find a group with the given Id and return the
+        JSON representation of the object.
+      operationId: getGroup
+      parameters:
+      - name: Id
+        in: path
+        description: This is a URL parameter for the Id which is used to find and
+          return a group
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 6346
+      responses:
+        "200":
+          description: Group was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FdGroupDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Group not found)
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Administration - Security Group
+      summary: This PUT service will update all attributes of a group with the given
+        Id based on the attributes of a JSON object parameters.
+      operationId: updateGroup
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FdGroupDataObject'
+      responses:
+        "200":
+          description: Group was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FdGroupDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Group not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Administration - Security Group
+      summary: This PATCH service will update an existing group with the information
+        passed through a JSON object. If an attribute of the JSON is null it will
+        not be updated in the group.
+      operationId: patchGroup
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FdGroupDataObject'
+      responses:
+        "200":
+          description: Group was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FdGroupDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Group not found
+        "500":
+          description: Unexpected internal server error
+  /v1/administration/security/user:
+    get:
+      tags:
+      - Administration - User
+      summary: "This GET service will return a list of users in the form of JSON objects\
+        \ based on the query parameters user name, first name, last name and group\
+        \ id. Users are only returned if they match all of the specified query parameters.\
+        \ Maximum of 50 items will be returned if limit is not provided."
+      operationId: searchUsers
+      parameters:
+      - name: userName
+        in: query
+        description: "The user name of the user, it follows Equals search."
+        schema:
+          type: string
+      - name: lastName
+        in: query
+        description: "The last name of the user, Contains ignore case search."
+        schema:
+          type: string
+      - name: firstName
+        in: query
+        description: "The first name of the user, Contains ignore case search."
+        schema:
+          type: string
+      - name: groupId
+        in: query
+        description: Find users that are member of specific group.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Search successful and results returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUserPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Administration - User
+      summary: This POST service will create a new user with the same attributes as
+        the given JSON object.
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPojo'
+      responses:
+        "201":
+          description: User was created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/administration/security/user/{Id}:
+    get:
+      tags:
+      - Administration - User
+      summary: This GET service will find a user with the given Id and return the
+        JSON representation of the object.
+      operationId: findUserById
+      parameters:
+      - name: Id
+        in: path
+        description: This is a URL parameter for the Id which is used to find and
+          return a user
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 14048079
+      responses:
+        "200":
+          description: User was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: User not found)
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Administration - User
+      summary: This PUT service will update all attributes of a user with the given
+        Id based on the attributes of a JSON object parameters. Attributes that are
+        not provided will become their default values.
+      operationId: updateUser
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/UserPojo'
+      responses:
+        "200":
+          description: User was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: User not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Administration - User
+      summary: "This PATCH service will update an existing user with the information\
+        \ passed through a JSON object. If an attribute of the JSON is null it will\
+        \ not be updated in the user. Groups that are included in a PATCH will be\
+        \ added, but existing groups will still remain."
+      operationId: patchUser
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/UserPojo'
+      responses:
+        "200":
+          description: User was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: User not found
+        "500":
+          description: Unexpected internal server error
+  /v1/folder/{Id}:
+    get:
+      tags:
+      - Folder
+      summary: Find a Folder with the given Id
+      description: This GET service will find a Folder by Id and return a JSON representation
+        of it.
+      operationId: getFolder
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Folder was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Folder not found
+        "500":
+          description: Unexpected internal server error
+  /v1/folder:
+    get:
+      tags:
+      - Folder
+      summary: Search Folders
+      description: "This GET service will find a folder by querying based on a folder\
+        \ name and return the JSON representations of the objects satisfying the query.\
+        \ If no query parameters are given this request will return the entire list\
+        \ of folders. Note: The query parameters are not case sensitive. Searching\
+        \ by folderName=NAME is the same as searching by folderName=name."
+      operationId: searchFolders
+      parameters:
+      - name: folderName
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Matching Folders returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFolderPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectId}/package:
+    post:
+      tags:
+      - Project - Package
+      summary: Creates a Project Package
+      description: "This POST service will create a new package with the same attributes\
+        \ as the given JSON object. Note: packagePath element is only used for Salesforce\
+        \ projects."
+      operationId: createPackage
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageDetailsRequestPojo'
+      responses:
+        "201":
+          description: Project Package was created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageDetailsResponsePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectId}/package/{packageName}:
+    get:
+      tags:
+      - Project - Package
+      summary: Find a Project Package with the given Name for a given projectId
+      description: "This method will find a package with the given name in the given\
+        \ project and return the JSON representation of the package. Note: packagePath\
+        \ element is only used for Salesforce projects."
+      operationId: getPackage
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: packageName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Project Package was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageDetailsResponsePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project Package not found
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Project - Package
+      summary: Updates a Project Package - replacing any previous content with the
+        new contents
+      description: "This PUT service will replace all attributes of a given package\
+        \ with the attributes of the provided JSON request. Note: packagePath element\
+        \ is only used for Salesforce projects."
+      operationId: updatePackage
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: packageName
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageDetailsRequestPojo'
+      responses:
+        "200":
+          description: Project Package was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageDetailsResponsePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project or Package not found
+        "500":
+          description: Unexpected internal server error
+    delete:
+      tags:
+      - Project - Package
+      summary: Deletes a Project Package
+      description: "This method will delete a package with the given name in the given\
+        \ project. There is no response message. If package is not present (was already\
+        \ deleted), no error code will be returned."
+      operationId: deletePackage
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: packageName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Project Package was deleted
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Project - Package
+      summary: Patches a Project Package - appending any provided files to the existing
+        package
+      description: "This PATCH service will update an existing package with the information\
+        \ passed through a JSON object. If an attribute of the JSON is null, it will\
+        \ not be updated in the package. Any new files included in the request will\
+        \ be appended to the list of files already in the package. Note: packagePath\
+        \ element is only used for Salesforce projects."
+      operationId: patchPackage
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: packageName
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageDetailsRequestPojo'
+      responses:
+        "200":
+          description: Project Package was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageDetailsResponsePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project or Package not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectid}/property:
+    get:
+      tags:
+      - Project - Properties
+      summary: Gets the Project Properties for a project
+      description: This GET service will find list of Project Properties associated
+        with the given Project and return the JSON representation of the list.
+      operationId: getPropertiesByProjectId
+      parameters:
+      - name: projectid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Project Properties returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPropertyValuePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Project - Properties
+      summary: Replaces the Project Properties for a project
+      description: "This PUT service will update the propertyValue of each property\
+        \ in the project associated with the Project id specified in the URL. Note:\
+        \ Any properties not passed in will be reset to their default values."
+      operationId: updateProjectProperties
+      parameters:
+      - name: projectid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PropertyValuePojo'
+      responses:
+        "200":
+          description: Project Properties replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPropertyValuePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Project - Properties
+      summary: Updates the Project Properties for a project
+      description: This PATCH service will update an existing Project's Properties
+        with the information passed through a JSON object. If a property is not listed
+        it will not be updated in the Project and will remain as is.
+      operationId: patchProjectProperties
+      parameters:
+      - name: projectid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PropertyValuePojo'
+      responses:
+        "200":
+          description: Project Properties updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPropertyValuePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{Id}/build:
+    post:
+      tags:
+      - Project
+      summary: Builds a Project
+      operationId: buildProject
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/BuildProjectRequestPojo'
+      responses:
+        "201":
+          description: Project Built
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRequestDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project:
+    get:
+      tags:
+      - Project
+      summary: Search Projects
+      operationId: searchProjects
+      parameters:
+      - name: projectName
+        in: query
+        schema:
+          type: string
+      - name: folderId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: isActive
+        in: query
+        schema:
+          type: boolean
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Matching Projects returned. Maximum of 50 items will be returned
+            if limit is not provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProjectPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Project
+      summary: Creates a new Project with attributes from the given JSON body
+      operationId: createProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectPojo'
+      responses:
+        "201":
+          description: Project was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{Id}/deploy:
+    post:
+      tags:
+      - Project
+      summary: Deploys a Project
+      operationId: deployProject
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployProjectRequestPojo'
+      responses:
+        "201":
+          description: Project Deployed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRequestDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{Id}/execute:
+    post:
+      tags:
+      - Project
+      summary: Executes a Utility Project
+      operationId: executeUtilityProject
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/UtilityProjectRequestPojo'
+      responses:
+        "201":
+          description: Project Executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRequestDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{id}:
+    get:
+      tags:
+      - Project
+      summary: Find a Project with the given Id
+      operationId: getProject
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Project was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{Id}:
+    patch:
+      tags:
+      - Project
+      summary: Updates provided attributes of a Project with the given Id based on
+        a JSON object
+      operationId: patchProject
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectPojo'
+      responses:
+        "200":
+          description: Project was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectId}/stream:
+    get:
+      tags:
+      - Project - Branch
+      summary: Returns a list of branches that match the criteria
+      operationId: searchProjectStreams
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: streamName
+        in: query
+        schema:
+          type: string
+      - name: isActive
+        in: query
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: Matching Branches returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProjectStreamPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Project - Branch
+      summary: Creates a Branch (previously called a project stream)
+      operationId: createProjectStream
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectStreamPojo'
+      responses:
+        "200":
+          description: Branch found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStreamPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectId}/stream/{streamId}:
+    get:
+      tags:
+      - Project - Branch
+      summary: Returns a JSON representation of the branch
+      operationId: getStreamByProjectAndStreamId
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: streamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Branch found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStreamPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Branch not found
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Project - Branch
+      summary: "Updates a project Branch, replacing all attributes with those given."
+      operationId: updateProjectStream
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: streamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectStreamPojo'
+      responses:
+        "201":
+          description: The Branch was successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStreamPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Branch not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Project - Branch
+      summary: "Updates a project Branch, replacing only non-null attributes from\
+        \ the given object."
+      operationId: patchProjectStream
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: streamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectStreamPojo'
+      responses:
+        "201":
+          description: The Branch was successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStreamPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Branch not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectId}/stream/{streamId}/populate:
+    post:
+      tags:
+      - Project - Branch
+      summary: Discovers files for a project Branch. Returns an integer which is the
+        number of new files populated.
+      operationId: populateFiles
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: streamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PopulateFilesRequestPojo'
+      responses:
+        "201":
+          description: The Discover operation was successfully executed.
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int32
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Branch not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectId}/stream/{streamId}/populate/salesforce:
+    post:
+      tags:
+      - Project - Branch
+      summary: Discovers Salesforce files for a project Branch
+      operationId: populateFilesFromSalesforce
+      parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: streamId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PopulateFromSalesforceRequestPojo'
+      responses:
+        "201":
+          description: The Discover operation was successfully executed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFlexSalesforceObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Branch not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectid}/version/{versionid}/artifact:
+    get:
+      tags:
+      - Project - Version
+      summary: Download zipped Artifacts for a Project Version
+      operationId: getArtifactsByProjectVersionId
+      parameters:
+      - name: projectid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: versionid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "201":
+          description: Artifacts downloaded.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: byte
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Version not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectid}/version/{versionid}:
+    get:
+      tags:
+      - Project - Version
+      summary: Gets a project Version
+      operationId: getProjectVersionById
+      parameters:
+      - name: projectid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: versionid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "201":
+          description: Project Version returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectVersionPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project or Version not found
+        "500":
+          description: Unexpected internal server error
+  /v1/project/{projectid}/version:
+    get:
+      tags:
+      - Project - Version
+      summary: Searches Project Versions
+      operationId: searchProjectVersions
+      parameters:
+      - name: projectid
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: projectVersionName
+        in: query
+        schema:
+          type: string
+      - name: projectStreamId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: packageName
+        in: query
+        schema:
+          type: string
+      - name: requestAllFiles
+        in: query
+        schema:
+          type: boolean
+      - name: scmRevision
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "201":
+          description: Project Versions returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProjectVersionPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authentication failure(no access to resource)
+        "404":
+          description: Project not found
+        "500":
+          description: Unexpected internal server error
+  /v1/releases/{releaseId}/gate/approval:
+    post:
+      tags:
+      - Release Gates
+      summary: Completes an Approval Gate with attributes from the given JSON body.
+      description: "If snapshotId is not specified, the latest execution for the given\
+        \ environmentId and gateName is used. An error will be returned if the stage\
+        \ is not currently running gates or if the gateName provided is not awaiting\
+        \ approval. The authenticated user must be a member of the pipeline role assigned\
+        \ to the gate or an administrator."
+      operationId: completeApprovalGate
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: snapshotId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteApprovalGatePOJO'
+      responses:
+        "201":
+          description: Approval gate successfully approved or rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteApprovalGatePOJO'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/releases/{releaseId}/gate/externalApproval:
+    post:
+      tags:
+      - Release Gates
+      summary: Completes an External Gate with attributes from the given JSON body
+      description: "If snapshotId is not specified, the latest execution for the given\
+        \ environmentId and gateName is used. An error will be returned if the stage\
+        \ is not currently running gates or if the gateName provided is not awaiting\
+        \ approval. The authenticated user must be a member of the pipeline role assigned\
+        \ to the gate or an administrator."
+      operationId: completeExternalGate
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: snapshotId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/CompleteExternalGatePOJO'
+      responses:
+        "201":
+          description: External gate successfully approved or rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteExternalGatePOJO'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/releases:
+    get:
+      tags:
+      - Release
+      summary: Search releases
+      description: "This GET service will return the JSON representation of a list\
+        \ of releases given release query parameters. If no query parameters are provided,\
+        \ all releases will be returned. Maximum of 50 items will be returned if limit\
+        \ is not provided."
+      operationId: searchReleases
+      parameters:
+      - name: releaseName
+        in: query
+        schema:
+          type: string
+      - name: releaseStatus
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Search successful and results returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListReleasePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Release
+      summary: Creates a new release
+      description: "This POST service will create a new release with the same attributes\
+        \ as the given JSON object. Note: ReleaseId is not required as input. It will\
+        \ be received in response once submitted."
+      operationId: createRelease
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleasePojo'
+      responses:
+        "201":
+          description: Release created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleasePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/releases/{releaseId}:
+    get:
+      tags:
+      - Release
+      summary: Find a release with the given id
+      description: This GET service will return the JSON representation of a release
+        given a release Id.
+      operationId: getReleaseById
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Release was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleasePojo'
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Release not found
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Release
+      summary: Updates the release
+      description: "This PUT service will update all attributes of a release with\
+        \ the given Id based on the attributes of a JSON object parameters. If an\
+        \ attribute is null it will delete or reset those attributes to their default\
+        \ value. Note: ReleaseId and ReleaseName are required."
+      operationId: putRelease
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleasePojo'
+      responses:
+        "200":
+          description: Release updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleasePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Release
+      summary: Updates/Append to an existing release
+      description: "This PATCH service will update an existing release with the information\
+        \ passed through a JSON object. PATCH will only add new data or update existing\
+        \ data, and does not support removing data. Note: ReleaseId and ReleaseName\
+        \ are required."
+      operationId: patchRelease
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleasePojo'
+      responses:
+        "200":
+          description: Release updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleasePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/releases/{releaseId}/snapshot:
+    get:
+      tags:
+      - Release Snapshots
+      summary: Search Snapshots
+      description: "This GET service will return the JSON representation of a list\
+        \ of snapshots given the release id and snapshot query parameters. Results\
+        \ are sorted so latest snapshots are returned first. If no query parameters\
+        \ are provided, all the snapshots in the release will be returned."
+      operationId: searchSnapshots
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: snapshotName
+        in: query
+        schema:
+          type: string
+      - name: snapshotStatus
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Search successful and results returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSnapshotPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Release Snapshots
+      summary: Creates a new snapshot or Promotes a Project to a Release
+      description: "If action is 'createSnapshot', it will create a new snapshot with\
+        \ the same attributes as the given JSON object. If action is 'promoteToRelease',\
+        \ project versions can be promoted to a release through this POST service.\
+        \ Promoting a project to a release will combine the specified version of the\
+        \ given project with the versions of the other projects used in the previous\
+        \ snapshot into a new snapshot."
+      operationId: createSnapshot
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnapshotInputPojo'
+      responses:
+        "201":
+          description: Snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotPojo'
+        "404":
+          description: Release not found
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/releases/{releaseId}/snapshot/{snapshotId}/execution:
+    get:
+      tags:
+      - Release Snapshots
+      summary: Find the Snapshot Execution with the given snapshot id
+      description: "Snapshot Execution (Pipeline Stage Execution) data can be retrieved\
+        \ using this REST service. This service provides the current status of a snapshot\
+        \ and information about its progress through the pipeline. If a valid snapshot\
+        \ is provided, but the query parameters do not yet have execution results,\
+        \ the returned response will be without stage/step/gate execution detail."
+      operationId: getReleaseExecutions
+      parameters:
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: snapshotId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: stepName
+        in: query
+        schema:
+          type: string
+      - name: gateName
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Snapshot Execution was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineExecutionPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Release or snapshot not found
+        "500":
+          description: Unexpected internal server error
+  /v1/releases/{releaseId}/snapshot/{snapshotId}:
+    get:
+      tags:
+      - Release Snapshots
+      summary: Find the Snapshot with the given release id
+      description: This GET service will return the JSON representation of a snapshot
+        given a release id and snapshot Id.
+      operationId: getSnapshot
+      parameters:
+      - name: snapshotId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: releaseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Snapshot was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Release or snapshot not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/approval/approve:
+    put:
+      tags:
+      - Approval Tasks
+      summary: Approve Task by the given attributes
+      description: "This PUT service will approve an approval task with the given\
+        \ attributes. Note: Only one approval task can be approved at a time. If more\
+        \ than one task matches the query parameters an exception will be thrown."
+      operationId: approveApprovalTask
+      parameters:
+      - name: workflowRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: folderRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageExecId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: applicationId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: externalId
+        in: query
+        schema:
+          type: string
+      - name: externalSystemType
+        in: query
+        schema:
+          type: string
+      - name: externalSystemId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/approval/approve/{Id}:
+    put:
+      tags:
+      - Approval Tasks
+      summary: Approve Task by Id
+      description: This PUT service will approve an approval task with the given Id.
+      operationId: approveApprovalTaskById
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "404":
+          description: Task not found
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/approval/{Id}:
+    get:
+      tags:
+      - Approval Tasks
+      summary: Find an Approval Task with the given Task Id
+      description: This GET service will find an approval task with the given task
+        Id and return the JSON representation of the object.
+      operationId: getApprovalTask
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Task was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/approval/reject:
+    put:
+      tags:
+      - Approval Tasks
+      summary: Reject Task by the given attributes
+      description: "This PUT service will approve an approval task with the given\
+        \ attributes. Note: Only one approval task can be rejected at a time. If more\
+        \ than one task matches the query parameters an exception will be thrown."
+      operationId: rejectApprovalTask
+      parameters:
+      - name: workflowRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: folderRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageExecId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: applicationId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: externalId
+        in: query
+        schema:
+          type: string
+      - name: externalSystemType
+        in: query
+        schema:
+          type: string
+      - name: externalSystemId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/approval/reject/{Id}:
+    put:
+      tags:
+      - Approval Tasks
+      summary: Reject Task by Id
+      description: This PUT service will reject an approval task with the given Id.
+      operationId: rejectApprovalTaskById
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/approval:
+    get:
+      tags:
+      - Approval Tasks
+      summary: Search Approval Tasks
+      description: "This GET service will return a list of approval tasks in the form\
+        \ of JSON objects based on a query parameter for the display name. Approval\
+        \ tasks are only returned if they contain the specified parameter. If no query\
+        \ parameters are given this request will return the entire list of approval\
+        \ tasks. Note: The query parameters are not case sensitive. Searching by name=EXAMPLE\
+        \ is the same as searching by name=example. *notes are used to add a note,\
+        \ not search by a note. To return all of the approval tasks, use: http://host:port/flexdeploy/rest/v1/tasks/approval"
+      operationId: searchApprovalTasks
+      parameters:
+      - name: workflowRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: folderRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageExecId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: applicationId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: externalId
+        in: query
+        schema:
+          type: string
+      - name: externalSystemType
+        in: query
+        schema:
+          type: string
+      - name: externalSystemId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Search successful and results returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListApprovalTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/scheduled/cancel/{taskId}:
+    put:
+      tags:
+      - Scheduled Tasks API
+      summary: This PUT service will reject a scheduled task with the given Id.
+      operationId: cancelScheduledTaskById
+      parameters:
+      - name: taskId
+        in: path
+        description: The Id of the scheduled task you wish to cancel.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        description: This is a URL query parameter to add notes to the task when canceling
+          it.
+        allowEmptyValue: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/scheduled/cancel:
+    put:
+      tags:
+      - Scheduled Tasks API
+      summary: This PUT service will cancel a scheduled task with the given attributes.
+      operationId: cancelScheduledTaskByQueryParameters
+      parameters:
+      - name: workflowRequestId
+        in: query
+        description: This is a URL query parameter for the workflow request Id which
+          is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: folderRequestId
+        in: query
+        description: This is a URL query parameter for the folder request Id which
+          is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageGateExecId
+        in: query
+        description: This is a URL query parameter for the pipeline stage gate execution
+          Id which is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageStepExecId
+        in: query
+        description: This is a URL query parameter for the pipeline stage step execution
+          Id which is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        description: This is a URL query parameter for the project Id which is used
+          to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: applicationId
+        in: query
+        description: This is a URL query parameter for the application Id which is
+          used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        description: This is a URL query parameter for the environment Id which is
+          used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/scheduled/{taskId}:
+    get:
+      tags:
+      - Scheduled Tasks API
+      summary: This GET service will find a scheduled task with the given task Id
+        and return the JSON representation of the object.
+      operationId: getScheduledTaskById
+      parameters:
+      - name: taskId
+        in: path
+        description: This is a URL parameter for the Id which is used to find and
+          return a scheduled task.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Task was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/scheduled/runnow/{taskId}:
+    put:
+      tags:
+      - Scheduled Tasks API
+      summary: This PUT service will run a scheduled task with the given Id.
+      operationId: runScheduledTaskById
+      parameters:
+      - name: taskId
+        in: path
+        description: The Id of the scheduled task you wish to run.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        description: This is a URL query parameter to add notes to the task when running
+          it.
+        allowEmptyValue: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and schedule set to run immediately
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/scheduled/runnow:
+    put:
+      tags:
+      - Scheduled Tasks API
+      summary: This PUT service will run a scheduled task with the given attributes.
+      operationId: runScheduledTaskByQueryParameters
+      parameters:
+      - name: workflowRequestId
+        in: query
+        description: This is a URL query parameter for the workflow request Id which
+          is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: folderRequestId
+        in: query
+        description: This is a URL query parameter for the folder request Id which
+          is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageGateExecId
+        in: query
+        description: This is a URL query parameter for the pipeline stage gate execution
+          Id which is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageStepExecId
+        in: query
+        description: This is a URL query parameter for the pipeline stage step execution
+          Id which is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        description: This is a URL query parameter for the project Id which is used
+          to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: applicationId
+        in: query
+        description: This is a URL query parameter for the application Id which is
+          used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        description: This is a URL query parameter for the environment Id which is
+          used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Task was found and schedule set to run immediately
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Task not found
+        "500":
+          description: Unexpected internal server error
+  /v1/tasks/scheduled:
+    get:
+      tags:
+      - Scheduled Tasks API
+      summary: This GET service will return a list of scheduled tasks in the form
+        of JSON objects based on a query parameter for the display name.
+      description: Scheduled tasks are only returned if they contain the specified
+        parameter. If no query parameters are given this request will return the entire
+        list of scheduled tasks.
+      operationId: searchScheduledTasks
+      parameters:
+      - name: workflowRequestId
+        in: query
+        description: This is a URL query parameter for the workflow request Id which
+          is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: folderRequestId
+        in: query
+        description: This is a URL query parameter for the folder request Id which
+          is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageGateExecId
+        in: query
+        description: This is a URL query parameter for the pipeline stage gate execution
+          Id which is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: pipelineStageStepExecId
+        in: query
+        description: This is a URL query parameter for the pipeline stage step execution
+          Id which is used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        description: This is a URL query parameter for the project Id which is used
+          to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: applicationId
+        in: query
+        description: This is a URL query parameter for the application Id which is
+          used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        description: This is a URL query parameter for the environment Id which is
+          used to search the scheduled tasks.
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      - name: notes
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Search successful and results returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListScheduledTaskPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/environmentinstance/{envId}/{instId}:
+    get:
+      tags:
+      - Topology - Targets API
+      summary: This GET service will find a target  with the given environment id
+        and target group id. It returns the JSON representation of the target.
+      operationId: getEnvironmentInstance
+      parameters:
+      - name: envId
+        in: path
+        description: URL parameter for the environment Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: instId
+        in: path
+        description: URL parameter for the target group Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Target was found and returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Target not found)
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Topology - Targets API
+      summary: This PUT service will replace all attributes of a target with the given
+        target corresponding to the environment id and target group id provided in
+        the url.
+      operationId: updateEnvironmentInstance
+      parameters:
+      - name: envId
+        in: path
+        description: URL parameter for the environment Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: instId
+        in: path
+        description: URL parameter for the target group Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvironmentInstancePojo'
+      responses:
+        "200":
+          description: Target was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Target not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Topology - Targets API
+      summary: This PATCH service will update an existing target with the information
+        passed through a JSON object. If an attribute of the JSON is null it will
+        not be updated in the target.
+      operationId: patchEnvironmentInstance
+      parameters:
+      - name: envId
+        in: path
+        description: URL parameter for the environment Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: instId
+        in: path
+        description: URL parameter for the target group Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvironmentInstancePojo'
+      responses:
+        "200":
+          description: Target was found and patched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Target not found
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/environmentinstance/{envId}/{instId}/initiatepostrefresh:
+    post:
+      tags:
+      - Topology - Targets API
+      summary: This POST service will perform the same action found on the Post Refresh
+        requests form off of the target page.
+      description: ' It will initiate a post refresh request to build and deploy any
+        projects in order to refresh an environment to its original state after that
+        target group has been cloned from another environment. The service will return
+        a post refresh request json object.'
+      operationId: initiatePostRefreshRequest
+      parameters:
+      - name: envId
+        in: path
+        description: URL parameter for the environment Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: instId
+        in: path
+        description: URL parameter for the target group Id which is used to find and
+          return a target.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/PostRefreshRequestPojo'
+      responses:
+        "200":
+          description: No difference found between environments
+        "201":
+          description: Post refresh request initiated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostRefreshDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: target not found
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/account/{accountType}:
+    get:
+      tags:
+      - Topology - Integrations Account
+      summary: "This GET service will return a list of account instances in the form\
+        \ of JSON objects based on the query parameters code, name, and provider."
+      description: "Account instances are only returned if they match all of the specified\
+        \ query parameters. If no query parameters are given, this request will return\
+        \ the entire list of account instances. These query parameters are not case\
+        \ sensitive. Searching by instanceCode=CODE is the same as searching by instanceCode=code."
+      operationId: searchAccountInstances
+      parameters:
+      - name: accountType
+        in: path
+        description: "URL parameter for the type of account. Possible values: ARTIFACTREPO,CISERVER,CLOUD,CMS,CONTAINERS,ITS,MESSAGING,OTHERTOOLS,SCANTOOL,SCM\
+          \ and TEST"
+        required: true
+        schema:
+          type: string
+      - name: instanceName
+        in: query
+        description: This is a URL query parameter for the name which is used to search
+          the account instances.
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: instanceCode
+        in: query
+        description: This is a URL query parameter for the code which is used to search
+          the account instances.
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: provider
+        in: query
+        description: This is a URL query parameter for the provider which is used
+          to search the account instances.
+        allowEmptyValue: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Search successful and results returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAccountInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Topology - Integrations Account
+      summary: This POST service will create a new account instance with the same
+        attributes as the given JSON object.
+      operationId: createAccountInstance
+      parameters:
+      - name: accountType
+        in: path
+        description: "URL parameter for the type of account. Possible values: ARTIFACTREPO,CISERVER,CLOUD,CMS,CONTAINERS,ITS,MESSAGING,OTHERTOOLS,SCANTOOL,SCM\
+          \ and TEST"
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountInstancePojo'
+      responses:
+        "201":
+          description: New Account instance was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/account/{accountType}/{Id}:
+    get:
+      tags:
+      - Topology - Integrations Account
+      summary: This GET service will find an account instance with the given Id and
+        return the JSON representation of the object.
+      operationId: getAccountInstanceById
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the id of the account instance to get
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: accountType
+        in: path
+        description: "URL parameter for the type of account. Possible values: ARTIFACTREPO,CISERVER,CLOUD,CMS,CONTAINERS,ITS,MESSAGING,OTHERTOOLS,SCANTOOL,SCM\
+          \ and TEST"
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Account Instance found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Topology - Integrations Account
+      summary: This PUT service will update all attributes of an account instance
+        with the given Id based on the attributes of a JSON object parameters.
+      operationId: updateAccountInstance
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the id of the account instance to get
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: accountType
+        in: path
+        description: "URL parameter for the type of account. Possible values: ARTIFACTREPO,CISERVER,CLOUD,CMS,CONTAINERS,ITS,MESSAGING,OTHERTOOLS,SCANTOOL,SCM\
+          \ and TEST"
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountInstancePojo'
+      responses:
+        "200":
+          description: Account instance was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Account instance was not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Topology - Integrations Account
+      summary: This PATCH service will update an existing account instance with the
+        information passed through a JSON object.
+      description: "If an attribute of the JSON is null, it will not be updated in\
+        \ the account instance."
+      operationId: patchAccountInstance
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the id of the account instance to get
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: accountType
+        in: path
+        description: "URL parameter for the type of account. Possible values: ARTIFACTREPO,CISERVER,CLOUD,CMS,CONTAINERS,ITS,MESSAGING,OTHERTOOLS,SCANTOOL,SCM\
+          \ and TEST"
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountInstancePojo'
+      responses:
+        "200":
+          description: Account Instance Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Account instance was not found
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/cmsinstance:
+    get:
+      tags:
+      - Topology - Integration CMSInstance
+      summary: "This GET service will return a list of Change Management Systems in\
+        \ the form of JSON objects based on the query parameters code, name, and Change\
+        \ Management System type."
+      description: Change Management Systems are only returned if they match ALL of
+        the specified query parameters. If no query parameters are given this request
+        will return the entire list of Change Management Systems.
+      operationId: searchCMSInstances
+      parameters:
+      - name: instanceName
+        in: query
+        description: This is a URL query parameter for the instance name which is
+          used to search the change management systems. Contains ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: instanceCode
+        in: query
+        description: This is a URL query parameter for the instance code which is
+          used to search the change management systems. Equals ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: cmsSystemName
+        in: query
+        description: This is a URL query parameter for the change management system
+          name which is used to search the change management systems. Equals ignore
+          case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Search successful and results returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCMSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Topology - Integration CMSInstance
+      summary: The POST service will create a new change management system with the
+        same attributes as the given JSON object.
+      operationId: createCMSInstance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CMSInstancePojo'
+      responses:
+        "201":
+          description: Change Management System Instance was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CMSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/cmsinstance/{Id}:
+    get:
+      tags:
+      - Topology - Integration CMSInstance
+      summary: This GET service will find a Change Management System with the given
+        Id and return the JSON representation of the object.
+      operationId: getCMSInstance
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the Id which is used to find and return a Change
+          Management System.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Change Management System Instance was found and returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CMSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Change Management System Instance not found)
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Topology - Integration CMSInstance
+      summary: This PUT service will update all attributes of an Change Management
+        System with the given Id based on the attributes of the supplied JSON object.
+      operationId: updateCMSInstance
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CMSInstancePojo'
+      responses:
+        "200":
+          description: Change Management System Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CMSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Change Management System not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Topology - Integration CMSInstance
+      summary: This PATCH service will update the information of the Change Management
+        System of the specified Id with the non-null parameters of the JSON.
+      description: The parameters that are null will not be changed in the Change
+        Management System.
+      operationId: patchCMSInstance
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CMSInstancePojo'
+      responses:
+        "200":
+          description: Change Management System Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CMSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Change Management System not found
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/itsinstance:
+    get:
+      tags:
+      - Topology - Integrations Issue Tracking System Instance
+      summary: "This GET service will return a list of Issue Tracking Systems in the\
+        \ form of JSON objects based on the query parameters code, name, and issue\
+        \ tracking system type."
+      description: Issue Tracking Systems are only returned if they match ALL of the
+        specified query parameters. If no query parameters are given this request
+        will return the entire list of Issue Tracking Systems.
+      operationId: searchITSInstances
+      parameters:
+      - name: instanceCode
+        in: query
+        description: This is a URL query parameter for the instance code which is
+          used to search the issue tracking systems. Equals ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: instanceName
+        in: query
+        description: This is a URL query parameter for the instance name which is
+          used to search the issue tracking systems. Contains ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: issueTrackingSystemName
+        in: query
+        description: This is a URL query parameter for the issue tracking system name
+          which is used to search the issue tracking systems. Equals ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Search successful and results returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListITSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Topology - Integrations Issue Tracking System Instance
+      summary: The POST service will create a new issue tracking system with the same
+        attributes as the given JSON object.
+      description: It returns the JSON representation of the issue tracking system
+        that was just created with an updated ID attribute.
+      operationId: createITSInstance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ITSInstancePojo'
+      responses:
+        "201":
+          description: Issue Tracking System instance was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/itsinstance/{Id}:
+    get:
+      tags:
+      - Topology - Integrations Issue Tracking System Instance
+      summary: This GET service will find an Issue Tracking System with the given
+        Id and return the JSON representation of the object.
+      operationId: getITSInstance
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the Id which is used to find and return an
+          issue tracking system.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Issue Tracking System instance was found and returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Issue Tracking System instance not found
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Topology - Integrations Issue Tracking System Instance
+      summary: This PUT service will update all attributes of an issue tracking system
+        with the given Id based on the attributes of the supplied JSON object.
+      operationId: updateITSInstance
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the Id which is used to find and return an
+          issue tracking system.
+        required: true
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ITSInstancePojo'
+      responses:
+        "200":
+          description: Issue Tracking System instance was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Issue Tracking System instance not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Topology - Integrations Issue Tracking System Instance
+      summary: This PATCH service will update the information of the Issue Tracking
+        System of the specified Id with the non-null parameters of the JSON.
+      description: The parameters that are null will not be changed in the Issue Tracking
+        System .
+      operationId: patchITSInstance
+      parameters:
+      - name: Id
+        in: path
+        description: URL parameter for the Id which is used to find and return an
+          issue tracking system.
+        required: true
+        allowEmptyValue: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ITSInstancePojo'
+      responses:
+        "200":
+          description: Issue Tracking System instance was found and updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ITSInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Issue Tracking System instance not found
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/scminstance:
+    get:
+      tags:
+      - Topology - Integrations SCMInstance
+      summary: "This GET service will find a SCM instance by querying based on a name,\
+        \ code, and/or type of the SCM and return the JSON representations of the\
+        \ objects."
+      description: If no query parameters are given this request will return the entire
+        list of SCM instances.
+      operationId: searchSCMInstances
+      parameters:
+      - name: instanceName
+        in: query
+        description: This is a URL query parameter for the name which is used to query
+          the SCM instances with. Contains ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: instanceCode
+        in: query
+        description: This is a URL query parameter for the code which is used to query
+          the SCM instances with. Equals ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: scmType
+        in: query
+        description: This is a URL query parameter for the type which is used to query
+          the SCM instances with. Equals ignore case search
+        allowEmptyValue: true
+        schema:
+          type: string
+      - name: isActive
+        in: query
+        description: Returns scm instances where isActive field matches parameter.
+        allowEmptyValue: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: Search successful and results returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSCMInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+    post:
+      tags:
+      - Topology - Integrations SCMInstance
+      summary: This POST service will create a new SCM instance with the same attributes
+        as the given JSON object.
+      operationId: createSCMInstance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SCMInstancePojo'
+      responses:
+        "201":
+          description: Instance was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCMInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/scminstance/{Id}:
+    get:
+      tags:
+      - Topology - Integrations SCMInstance
+      summary: This GET service will find a SCM instance with the given Id and return
+        the JSON representation of the object.
+      operationId: getSCMInstance
+      parameters:
+      - name: Id
+        in: path
+        description: This is a URL parameter for the Id which is used to find and
+          return a SCM instance.
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: SCM instance was found and returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCMInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: SCM instance not found)
+        "500":
+          description: Unexpected internal server error
+    put:
+      tags:
+      - Topology - Integrations SCMInstance
+      summary: This PUT service will update all attributes of a SCM instance with
+        the given Id based on the attributes of a JSON object parameters.
+      operationId: updateSCMInstance
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SCMInstancePojo'
+      responses:
+        "200":
+          description: SCM Instance was found and updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCMInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: SCM Instance not found
+        "500":
+          description: Unexpected internal server error
+    patch:
+      tags:
+      - Topology - Integrations SCMInstance
+      summary: This PATCH service will update an existing SCM instance with the information
+        passed through a JSON object. If an attribute of the JSON is null it will
+        not be updated in the SCM instance.
+      operationId: patchSCMInstance
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SCMInstancePojo'
+      responses:
+        "200":
+          description: SCM Instance was found and patched.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCMInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: SCM Instance not found
+        "500":
+          description: Unexpected internal server error
+  /v1/topology/integrations/scminstance/test:
+    post:
+      tags:
+      - Topology - Integrations SCMInstance
+      summary: This POST service will test the connection.
+      operationId: testSCMInstance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SCMInstancePojo'
+      responses:
+        "200":
+          description: Connection is successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SCMInstancePojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/self:
+    get:
+      tags:
+      - Current User Profile
+      summary: "This service will give information about current user. It returns\
+        \ the userName, roles,firstName,lastName and other information about the user."
+      operationId: getMyProfile
+      responses:
+        "200":
+          description: Search successful and results returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlexUserProfile'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/workflowexecution/{workflowExecutionId}/logs:
+    get:
+      tags:
+      - Workflow Execution
+      summary: Download zipped logs for a Workflow Execution with the given Id
+      operationId: getLogsByWorkflowExecutionId
+      parameters:
+      - name: workflowExecutionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Workflow Execution was found and the logs were returned
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: byte
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Workflow Execution not found
+        "500":
+          description: Unexpected internal server error
+  /v1/workflowexecution/{workflowExecutionId}:
+    get:
+      tags:
+      - Workflow Execution
+      summary: Find a Workflow Execution with the given Id
+      description: This GET service will find an execution with the given Id and return
+        the JSON representation of the object.
+      operationId: getWorkflowExecutionById
+      parameters:
+      - name: workflowExecutionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Workflow Execution was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowExecutionDataObject'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "404":
+          description: Workflow Execution not found
+        "500":
+          description: Unexpected internal server error
+  /v1/workflowexecution:
+    get:
+      tags:
+      - Workflow Execution
+      summary: Search Workflow Executions
+      description: "This GET service will return a list of executions in the form\
+        \ of JSON objects based on the query parameters code and name. Executions\
+        \ are only returned if they match all of the specified query parameters. If\
+        \ no query parameters are given this request will return the entire list of\
+        \ executions. Note: The query parameters are not case sensitive. Searching\
+        \ by name=NAME is the same as searching by name=name. Also workflowExecutionOutputs[]\
+        \ will always be null when search is made, must use the other GET operation\
+        \ which is get by ID, to see the outputs."
+      operationId: getWorkflowExecutionsByWorkflowRequestId
+      parameters:
+      - name: workflowExecutionId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: workflowRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: parentWorkflowRequestId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: projectId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: projectVersionId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: projectWorkflowId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: workflowVersionId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: environmentId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: instanceId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: predeployWorkflowExecId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: executionStatus
+        in: query
+        schema:
+          type: string
+      - name: dockerImageName
+        in: query
+        schema:
+          type: string
+      - name: workflowId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: workflowType
+        in: query
+        schema:
+          type: string
+      - name: reviewStatus
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Matching Workflow Executions returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWorkflowExecutionDataObjectPojo'
+        "400":
+          description: Bad request
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure(no access to resource)
+        "500":
+          description: Unexpected internal server error
+  /v1/workflowrequest/{workflowRequestId}:
+    get:
+      tags:
+      - Workflow Request
+      summary: Finds a Workflow Request with the given Id.
+      description: This GET service will find a workflow request using Id and return
+        the JSON representation of the object.
+      operationId: getWorkflowRequestById
+      parameters:
+      - name: workflowRequestId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Workflow request was found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRequestPojo'
+        "401":
+          description: Authentication failure
+        "403":
+          description: Authorization failure (no access to resource)
+        "404":
+          description: Workflow request not found
+        "500":
+          description: Unexpected internal server error
+components:
+  schemas:
+    FdGroupDataObject:
+      type: object
+      properties:
+        createdBy:
+          type: string
+          readOnly: true
+        groupId:
+          type: integer
+          format: int64
+        description:
+          type: string
+        isActive:
+          type: boolean
+        groupName:
+          type: string
+        updatedOn:
+          type: string
+          format: date-time
+          readOnly: true
+        versionNumber:
+          type: integer
+          format: int32
+        updatedBy:
+          type: string
+          readOnly: true
+        isAdminGroup:
+          type: boolean
+        createdOn:
+          type: string
+          format: date-time
+          readOnly: true
+    ListFdGroupDataObject:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/FdGroupDataObject'
+    AttributeComboPojo:
+      type: object
+      properties:
+        description:
+          type: string
+        attributeName:
+          type: string
+        attributeValue:
+          type: string
+        attributeDataType:
+          type: string
+        attributeGroup:
+          type: string
+    UserPojo:
+      type: object
+      properties:
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeComboPojo'
+        userId:
+          type: integer
+          format: int64
+        groups:
+          type: array
+          items:
+            type: integer
+            format: int64
+        email:
+          type: string
+        userName:
+          type: string
+        password:
+          type: string
+        isActive:
+          type: boolean
+        firstName:
+          type: string
+        lastName:
+          type: string
+        isLocalUser:
+          type: boolean
+    ListUserPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/UserPojo'
+    FolderPojo:
+      type: object
+      properties:
+        description:
+          type: string
+        folderName:
+          type: string
+        folderId:
+          type: integer
+          format: int64
+        subFolders:
+          type: array
+          items:
+            type: integer
+            format: int64
+        isActive:
+          type: boolean
+        parentFolderId:
+          type: integer
+          format: int64
+    ListFolderPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/FolderPojo'
+    PackageDetailsResponsePojo:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageFilePojo'
+        projectPackageId:
+          type: integer
+          format: int64
+        packageStatus:
+          type: string
+        packageType:
+          type: string
+        includePath:
+          type: string
+        excludePath:
+          type: string
+        packagePath:
+          type: string
+        versionSyntax:
+          type: string
+        tests:
+          type: string
+        testLevel:
+          type: string
+    PackageFilePojo:
+      type: object
+      properties:
+        objectType:
+          type: string
+        filePath:
+          type: string
+        sequenceNumber:
+          type: integer
+          format: int32
+    PackageDetailsRequestPojo:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageFilePojo'
+        packageStatus:
+          type: string
+        packageType:
+          type: string
+        includePath:
+          type: string
+        excludePath:
+          type: string
+        packagePath:
+          type: string
+        versionSyntax:
+          type: string
+        sortAll:
+          type: boolean
+        addFileFilter:
+          type: string
+        biggestSequenceNum:
+          type: integer
+          format: int32
+    ListPropertyValuePojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/PropertyValuePojo'
+    OverrideDetailsPojo:
+      type: object
+      properties:
+        instanceId:
+          type: integer
+          format: int64
+        environmentId:
+          type: integer
+          format: int64
+    PropertyValuePojo:
+      type: object
+      properties:
+        propertyValue:
+          type: string
+        propertyName:
+          type: string
+        credentialId:
+          type: integer
+          format: int64
+        overrideDetailsPojo:
+          $ref: '#/components/schemas/OverrideDetailsPojo'
+        isExpression:
+          type: boolean
+    WorkflowRequestDataDataObject:
+      type: object
+      properties:
+        createdBy:
+          type: string
+        workflowRequestId:
+          type: integer
+          format: int64
+        createdOn:
+          type: string
+          format: date-time
+        wfreqDataKey:
+          type: string
+        wfreqDataCategory:
+          type: string
+          enum:
+          - SNAPSHOT_INPUT
+        wfreqDataValue:
+          type: string
+        isEncrypted:
+          type: boolean
+    WorkflowRequestDataObject:
+      type: object
+      properties:
+        priority:
+          type: integer
+          format: int32
+        createdBy:
+          type: string
+          readOnly: true
+        projectId:
+          type: integer
+          format: int64
+        folderId:
+          type: integer
+          format: int64
+        relDefinitionId:
+          type: integer
+          format: int64
+        relSnapshotId:
+          type: integer
+          format: int64
+        projectStreamId:
+          type: integer
+          format: int64
+        allFilesRequested:
+          type: boolean
+        pipelineStageStepExecId:
+          type: integer
+          format: int64
+        requestedStartTime:
+          type: string
+          format: date-time
+        updatedOn:
+          type: string
+          format: date-time
+          readOnly: true
+        workflowRequestId:
+          type: integer
+          format: int64
+        pipelineStageExecId:
+          type: integer
+          format: int64
+        workflowId:
+          type: integer
+          format: int64
+        environmentId:
+          type: integer
+          format: int64
+        force:
+          type: boolean
+        workflowVersionOverride:
+          type: integer
+          format: int64
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRequestInputDataObject'
+        projectVersionId:
+          type: integer
+          format: int64
+        versionNumber:
+          type: integer
+          format: int32
+        updatedBy:
+          type: string
+          readOnly: true
+        createdOn:
+          type: string
+          format: date-time
+          readOnly: true
+        flexField4:
+          type: string
+        deploymentStrategy:
+          type: string
+        finishDeployment:
+          type: string
+        flexField1:
+          type: string
+        flexField10:
+          type: string
+        flexField2:
+          type: string
+        flexField3:
+          type: string
+        flexField5:
+          type: string
+        flexField6:
+          type: string
+        flexField7:
+          type: string
+        flexField8:
+          type: string
+        flexField9:
+          type: string
+        groupRequestId:
+          type: integer
+          format: int64
+        isException:
+          type: boolean
+        newWeight:
+          type: string
+        oldWeight:
+          type: string
+        predeployRequestedStartTime:
+          type: string
+          format: date-time
+        predeployWorkflowExecId:
+          type: integer
+          format: int64
+        projectWorkflowId:
+          type: integer
+          format: int64
+        requestStatus:
+          type: string
+        routeRule:
+          type: string
+        stopOnPkgError:
+          type: boolean
+        triggerType:
+          type: string
+        workflowType:
+          type: string
+        instances:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRequestInstDataObject'
+        rollback:
+          type: boolean
+        requestNotes:
+          type: string
+        requestData:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRequestDataDataObject'
+    WorkflowRequestInputDataObject:
+      type: object
+      properties:
+        createdBy:
+          type: string
+          readOnly: true
+        workflowRequestId:
+          type: integer
+          format: int64
+        createdOn:
+          type: string
+          format: date-time
+          readOnly: true
+        workflowRequestInputKey:
+          type: string
+        isEncrypted:
+          type: boolean
+        workflowRequestInputValue:
+          type: string
+    WorkflowRequestInstDataObject:
+      type: object
+      properties:
+        createdBy:
+          type: string
+          readOnly: true
+        workflowRequestId:
+          type: integer
+          format: int64
+        instanceId:
+          type: integer
+          format: int64
+        createdOn:
+          type: string
+          format: date-time
+          readOnly: true
+        instanceCode:
+          type: string
+    BuildProjectRequestPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        releaseId:
+          type: integer
+          format: int64
+        environmentId:
+          type: integer
+          format: int64
+        workflowVersionOverride:
+          type: string
+        flexFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexField'
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Input'
+        forceBuild:
+          type: boolean
+        streamId:
+          type: integer
+          format: int64
+        relatedTickets:
+          type: array
+          items:
+            type: string
+    FlexField:
+      type: object
+      properties:
+        value:
+          type: string
+        code:
+          type: string
+    Input:
+      type: object
+      properties:
+        value:
+          type: string
+        code:
+          type: string
+    Link:
+      type: object
+      properties:
+        type:
+          type: string
+        link:
+          type: string
+    ProjectBuildInfo:
+      type: object
+      properties:
+        workflowId:
+          type: integer
+          format: int64
+        instanceId:
+          type: integer
+          format: int64
+    ProjectDeployInfo:
+      type: object
+      properties:
+        workflowId:
+          type: integer
+          format: int64
+        instanceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    ProjectPojo:
+      type: object
+      properties:
+        priority:
+          type: integer
+          format: int32
+        description:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+        folderId:
+          type: integer
+          format: int64
+        isActive:
+          type: boolean
+        scmConfiguration:
+          $ref: '#/components/schemas/ProjectSCMPojo'
+        buildInfo:
+          $ref: '#/components/schemas/ProjectBuildInfo'
+        deployInfo:
+          $ref: '#/components/schemas/ProjectDeployInfo'
+        utilityExecutionInfo:
+          $ref: '#/components/schemas/UtilityProjectExecutionInfo'
+        projectType:
+          type: string
+        projectName:
+          type: string
+        projectPath:
+          type: string
+        packageBuildType:
+          type: string
+        preDeployInfo:
+          $ref: '#/components/schemas/ProjectPreDeployInfo'
+        projectClassification:
+          type: string
+          enum:
+          - Standard
+          - PackageBased
+          - Container
+          - Utility
+        webhooksEnabled:
+          type: boolean
+        priorityScope:
+          type: string
+          enum:
+          - Application
+          - Folder
+          - Global
+        projectBuildSequence:
+          type: integer
+          format: int64
+        packageNameSyntax:
+          type: string
+        iconLink:
+          type: string
+        streams:
+          type: array
+          items:
+            type: integer
+            format: int64
+        mainStreamName:
+          type: string
+        scmType:
+          type: string
+          enum:
+          - SVN
+          - GIT
+          - CVS
+          - TFVC
+          - PERF
+          - PVCS
+          - FILE
+          - SURROUND
+          - NONE
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+    ProjectPreDeployInfo:
+      type: object
+      properties:
+        workflowId:
+          type: integer
+          format: int64
+    ProjectSCMConfig:
+      type: object
+      properties:
+        sourceNumber:
+          type: integer
+          format: int32
+        instanceId:
+          type: integer
+          format: int64
+        configValues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectSCMConfigValue'
+    ProjectSCMConfigValue:
+      type: object
+      properties:
+        configName:
+          type: string
+        configValue:
+          type: string
+    ProjectSCMPojo:
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectSCMConfig'
+    UtilityProjectExecutionInfo:
+      type: object
+      properties:
+        workflowId:
+          type: integer
+          format: int64
+        instanceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    DeployProjectRequestPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        startTime:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+        instanceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        environmentId:
+          type: integer
+          format: int64
+        workflowVersionOverride:
+          type: string
+        flexFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexField'
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Input'
+        streamId:
+          type: integer
+          format: int64
+        forceDeploy:
+          type: boolean
+        predeploy:
+          type: boolean
+        projectVersionId:
+          type: integer
+          format: int64
+        predeployStartTime:
+          type: string
+        changeTickets:
+          type: array
+          items:
+            type: string
+    UtilityProjectRequestPojo:
+      type: object
+      properties:
+        startTime:
+          type: string
+        instanceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        environmentId:
+          type: integer
+          format: int64
+        workflowVersionOverride:
+          type: string
+        flexFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexField'
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Input'
+        exceptionToWindow:
+          type: boolean
+    ListProjectPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ProjectPojo'
+    ProjectStreamPojo:
+      type: object
+      properties:
+        description:
+          type: string
+        sequenceNumber:
+          type: integer
+          format: int64
+        isActive:
+          type: boolean
+        streamName:
+          type: string
+        attribute1:
+          type: string
+        attribute2:
+          type: string
+        attribute3:
+          type: string
+        versionSyntaxScript:
+          type: string
+        streamId:
+          type: integer
+          format: int64
+    PopulateFilesRequestPojo:
+      type: object
+      properties:
+        inactivateMissingFiles:
+          type: boolean
+    FlexSalesforceObject:
+      type: object
+      properties:
+        object:
+          type: string
+          enum:
+          - ACCOUNT_RELATIONSHIP_SHARE_RULE
+          - ACCOUNTING_FIELD_MAPPING
+          - ACCOUNTING_MODEL_CONFIG
+          - ACTION_LINK_GROUP_TEMPLATE
+          - ACTION_PLAN_TEMPLATE
+          - ACTIVATION_PLATFORM
+          - ACTIVATION_PLATFORM_FIELD
+          - ACTV_PRFM_DATA_CONNECTOR_S3
+          - ACTV_PFRM_DATA_CONNECTOR_S3
+          - ACTV_PLATFORM_ADNC_IDENTIFIER
+          - ACTV_PLATFORM_FIELD_VALUE
+          - ADV_ACCOUNT_FORECAST_SET
+          - AI_APPLICATION
+          - AI_APPLICATION_CONFIG
+          - AI_USECASE_DEFINITION
+          - ANALYTIC_SNAPSHOT
+          - ANIMATION_RULE
+          - ARTICLE_TYPE
+          - APEX_CLASS
+          - APEX_COMPONENT
+          - APEX_EMAIL_NOTIFICATIONS
+          - APEX_PAGE
+          - APEX_TEST_SUITE
+          - APEX_TRIGGER
+          - APP_MENU
+          - APPOINTMENT_ASSIGNMENT_POLICY
+          - APPOINTMENT_SCHEDULING_POLICY
+          - APPROVAL_PROCESS
+          - ASSIGNMENT_RULES
+          - ASSESSMENT_QUESTION
+          - ASSESSMENT_QUESTION_SET
+          - AUDIENCE
+          - AURA_DEFINITION_BUNDLE
+          - AUTH_PROVIDER
+          - AUTO_RESPONSE_RULES
+          - BATCH_CALC_JOB_DEFINITION
+          - BATCH_PROCESS_JOB_DEFINITION
+          - BLACKLISTED_CONSUMER
+          - BOT
+          - BOT_TEMPLATE
+          - BOT_VERSION
+          - BRANDING_SET
+          - BRIEF_CASE_DEFINITION
+          - BUSINESS_PROCESS_GROUP
+          - CALL_CENTER
+          - CALL_COACHING_MEDIA_PROVIDER
+          - CAMPAIGN_INFLUENCE_MODEL
+          - CASE_SUBJECT_PARTICLE
+          - CARE_BENEFIT_VERIFY_SETTINGS
+          - CARE_LIMIT_TYPE
+          - CARE_SYSTEM_FIELD_MAPPING
+          - CARE_PROVIDER_SEARCH_CONFIG
+          - CARE_REQUEST_CONFIGURATION
+          - CERTIFICATE
+          - CHATTER_EXTENSION
+          - CLAUSE_CATG_CONFIGURATION
+          - CLEAN_DATA_SERVICES
+          - CMS_CONNECT_SOURCE
+          - COMMUNITY
+          - COMMUNITY_TEMPLATE_DEFINITION
+          - COMMUNITY_THEME_DEFINITION
+          - CONNECTED_APP
+          - CONTENT_ASSET
+          - CONTRACT_TYPE
+          - CORS_WHITELIST_ORIGIN
+          - CSP_TRUSTED_SITE
+          - CUSTOM_APPLICATION
+          - CUSTOM_APPLICATION_COMPONENT
+          - CUSTOM_FEED_FILTER
+          - CUSTOM_HELP_MENU_SECTION
+          - CUSTOM_LABELS
+          - CUSTOM_METADATA
+          - CUSTOM_NOTIFICATION_TYPE
+          - CUSTOM_OBJECT
+          - CUSTOM_OBJECT_TRANSLATION
+          - CUSTOM_PAGE_WEBLINK
+          - CUSTOM_PERMISSION
+          - CUSTOM_SITE
+          - CUSTOM_TAB
+          - DASHBOARD
+          - DASHBOARD_FOLDER
+          - DATA_CATEGORY_GROUP
+          - DATA_CONNECTOR_INGEST_API
+          - DATA_PACKAGE_KIT_OBJECT
+          - DATA_PACKAGE_KIT_DEFINITION
+          - DATA_CONNECTOR_S3
+          - DATA_SOURCE
+          - DATA_SOURCE_BUNDLE_DEFINITION
+          - DATA_SOURCE_OBJECT
+          - DATA_SOURCE_FIELD
+          - DATA_SRC_DATA_MODEL_FIELD_MAP
+          - DATA_STREAM_DEFINITION
+          - DATA_STREAM_TEMPLATE
+          - DATA_WEAVE_RESOURCE
+          - DECISION_TABLE
+          - DECISION_TABLE_DATASET_LINK
+          - DECISION_MATRIX_DEFINITION
+          - DELEGATE_GROUP
+          - DISCLOSURE_DEFINITION
+          - DISCLOSURE_DEFINITION_VERSION
+          - DISCLOSURE_TYPE
+          - DISCOVERY_AI_MODEL
+          - DISCOVERY_GOAL
+          - DISCOVERY_STORY
+          - DOCUMENT
+          - DOCUMENT_FOLDER
+          - DOCUMENT_CHECKLIST_SETTINGS
+          - DUPLICATE_RULE
+          - ECLAIR_GEO_DATA
+          - EMAIL_SERVICES_FUNCTION
+          - EMAIL_FOLDER
+          - EMAIL_TEMPLATE
+          - EMBEDDED_SERVICE_BRANDING
+          - EMBEDDED_SERVICE_CONFIG
+          - EMBEDDED_SERVICE_FIELD_SERVICE
+          - EMBEDDED_SERVICE_FLOW_CONFIG
+          - EMBEDDED_SERVICE_LIVE_AGENT
+          - EMBEDDED_SERVICE_MENU_SETTINGS
+          - ENTITLEMENT_PROCESS
+          - ENTITLEMENT_TEMPLATE
+          - ESCALATION_RULES
+          - E_SIGNATURE_CONFIG
+          - E_SIGNATURE_ENVELOPE_CONFIG
+          - EVENT_DELIVERY
+          - EVENT_RELAY_CONFIG
+          - EVENT_SUBSCRIPTION
+          - EXPERIENCE_BUNDLE
+          - EXPLAINABILITY_MSG_TEMPLATE
+          - EXPRESSION_SET_DEFINITION
+          - EXPRESSION_SET_OBJECT_ALIAS
+          - EXTERNAL_CREDENTIAL
+          - EXTERNAL_DATA_CONNECTOR
+          - EXTERNAL_DATA_SOURCE
+          - EXTERNAL_DATA_TRAN_OBJECT
+          - EXTERNAL_AI_MODEL
+          - EXTERNAL_SERVICE_REGISTRATION
+          - FEATURE_PARAMETER_BOOLEAN
+          - FEATURE_PARAMETER_DATE
+          - FEATURE_PARAMETER_INTEGER
+          - FIELD_RESTRICTION_RULE
+          - FIELD_SRC_TRGT_RELATIONSHIP
+          - FLEXIPAGE
+          - FLOW
+          - FLOW_CATEGORY
+          - FLOW_DEFINITION
+          - FLOW_TEST
+          - FOLDER
+          - FORECASTING_FILTER
+          - FORECASTING_FILTER_CONDITION
+          - FORECASTING_SOURCE_DEFINITION
+          - FORECASTING_TYPE
+          - FORECASTING_TYPE_SOURCE
+          - FUEL_TYPE
+          - FUEL_TYPE_SUSTN_UOM
+          - FUNCTION_REFERENCE
+          - GATEWAY_PROVIDER_PAYMENT_METHOD_TYPE
+          - GLOBAL_PICKLIST
+          - GLOBAL_PICKLIST_VALUE
+          - GLOBAL_VALUE_SET
+          - GLOBAL_VALUE_SET_TRANSLATION
+          - GROUP
+          - HOME_PAGE_COMPONENT
+          - HOME_PAGE_LAYOUT
+          - INBOUND_CERTIFICATE
+          - INBOUND_NETWORK_CONNECTION
+          - IDENTITY_VERIFICATION_PROC_DEF
+          - IDENTITY_VERIFICATION_PROC_DTL
+          - IDENTITY_VERIFICATION_PROC_FLD
+          - INSTALLED_PACKAGE
+          - INTEGRATION_PROVIDER_DEF
+          - IP_ADDRESS_RANGE
+          - KEYWORD_LIST
+          - LAYOUT
+          - LETTER_HEAD
+          - LIGHTNING_BOLT
+          - LIGHTNING_COMPONMENT_BUNDLE
+          - LIGHTNING_EXPERIENCE_THEME
+          - LIGHTNING_MESSAGE_CHANNEL
+          - LIGHTNING_ONBOARDING_CONFIG
+          - LIVE_CHAT_AGENT_CONFIG
+          - LIVE_CHAT_BUTTON
+          - LIVE_CHAT_DEPLOYMENT
+          - LIVE_CHAT_SENSITIVE_DATA_RULE
+          - LOYALITY_PROGRAM_SETUP
+          - MANAGED_CONTENT_TYPE
+          - MANAGED_TOPICS
+          - MARKETING_APP_EXTENSION
+          - MARKET_SEGMENT_DEFINITION
+          - MATCHING_RULE
+          - MESSAGING_CHANNEL
+          - METADATA
+          - METADATA_WITH_CONTENT
+          - MFG_PROGRAM_TEMPLATE
+          - MILESTONE_TYPE
+          - ML_DOMAIN
+          - MKT_CALC_INSIGHT_OBJECT_DEF
+          - MKT_DATA_TRAN_OBJECT
+          - ML_DATA_DEFINITION
+          - ML_PREDICTION_DEFINITION
+          - MOBILE_APPLICATION_DETAIL
+          - MODERATION_RULE
+          - MUTING_PERMISSION_SET
+          - MY_DOMAIN_DISCOVERABLE_LOGIN
+          - NAMED_CREDENTIAL
+          - NAVIGATION_MENU
+          - NETWORK
+          - NETWORK_BRANDING
+          - NOTIFICATION_TYPE_CONFIG
+          - OAUTH_CUSTOM_SCOPE
+          - OBJECT_SOURCE_TARGET_MAP
+          - OCR_SAMPLE_DOCUMENT
+          - OCR_TEMPLATE
+          - OMNI_SCRIPT
+          - OMNI_SUPERVISOR_CONFIG
+          - OUTBOUND_NETWORK_CONNECTION
+          - PATH_ASSISTANT
+          - PAYMENT_GATEWAY_PROVIDER
+          - PERMISSION_SET
+          - PERMISSION_SET_GROUP
+          - PERMISSION_SET_LICENSE_DEFINITION
+          - PIPELINE_INSP_METRIC_CONFIG
+          - PLATFORM_CACHE_PARTITION
+          - PLATFORM_EVENT_CHANNEL
+          - PLATFORM_EVENT_CHANNEL_MEMBER
+          - PLATFORM_EVENT_SUBSCRIBER_CONFIG
+          - PORTAL
+          - PORTAL_DELEGABLE_PERMISSION_SET
+          - POST_TEMPLATE
+          - PRODUCT_ATTRIBUTE_SET
+          - PRESENCE_DECLINE_REASON
+          - PRESENCE_USER_CONFIG
+          - PROFILE
+          - PROFILE_ACTION_OVERRIDE
+          - PROFILE_PASSWORD_POLICY
+          - PROFILE_SESSION_SETTING
+          - PROMPT
+          - QUEUE
+          - QUEUE_ROUTING_CONFIG
+          - QUICK_ACTION
+          - RECORD_ALERT_CATEGORY
+          - REDIRECT_WHITELIST_URL
+          - RECOMMENDATION_STRATEGY
+          - RECORD_ACTION_DEPLOYMENT
+          - REFERENCED_DASHBOARD
+          - RELATIONSHIP_GRAPH_DEFINITION
+          - REMOTE_SITE_SETTING
+          - REPORT
+          - REPORT_FOLDER
+          - REPORT_TYPE
+          - RESTRICTION_RULE
+          - ROLE
+          - ROLE_OR_TERRITORY
+          - SALES_WORK_QUEUE_SETTINGS
+          - SAML_SSO_CONFIG
+          - SCHEDULING_OBJECTIVE
+          - SCHEDULING_RULE
+          - SCONTROL
+          - SERVICE_AI_SETUP_DEFINITION
+          - SERVICE_AI_SETUP_FIELD
+          - SERVICE_CHANNEL
+          - SERVICE_PRESENCE_STATUS
+          - SERVICE_PROCESS
+          - SETTINGS
+          - SHARED_TO
+          - SHARING_BASE_RULE
+          - SHARING_RULES
+          - SHARING_SET
+          - SITE_DOT_COM
+          - SKILL
+          - STANDARD_VALUE_SET
+          - STANDARD_VALUE_SET_TRANSLATION
+          - STATIC_RESOURCE
+          - STREAMING_APP_DATA_CONNECTOR
+          - SUSTAINABILITY_UOM
+          - SUSTN_UOM_CONVERSION
+          - SVC_CATALOG_CATEGORY
+          - SVC_CATALOG_FULFILLMENT_FLOW
+          - SVC_CATALOG_ITEM_DEF
+          - SYNONYM_DICTIONARY
+          - TERRITORY
+          - TERRITORY2
+          - TERRITORY2_MODEL
+          - TERRITORY2_RULE
+          - TERRITORY2_TYPE
+          - TIMELINE_OBJECT_DEFINITION
+          - TIME_SHEET_TEMPLATE
+          - TOPICS_FOR_OBJECTS
+          - TRANSACTION_SECURITY_POLICY
+          - TRANSLATIONS
+          - UI_OBJECT_RELATION_CONFIG
+          - USER_ACCESS_POLICY
+          - USER_AUTH_CERTIFICATE
+          - USER_CRITERIA
+          - USER_PROVISIONING_CONFIG
+          - VIRTUAL_VISIT_CONFIG
+          - WAVE_APPLICATION
+          - WAVE_COMPONENT
+          - WAVE_DASHBOARD
+          - WAVE_DATAFLOW
+          - WAVE_DATASET
+          - WAVE_LENS
+          - WAVE_RECIPE
+          - WAVE_TEMPLATE_BUNDLE
+          - WAVE_XMD
+          - WEB_STORE_TEMPLATE
+          - WORKFLOW
+          - WORK_SKILL_ROUTING
+          - CUSTOM_FIELD
+          - DATA
+          - LEAD_CONVERT_SETTING
+          - IFRAME_WHITE_LIST_URL_SETTINGS
+          - COMPACT_LAYOUT
+          - LIST_VIEW
+          - VALIDATION_RULE
+          - FIELD_SET
+          - RECORD_TYPE
+          - WEB_LINK
+          - BUSINESS_PROCESSES
+          - INDEX
+          - SHARING_REASON
+          - DOCUMENT_CATEGORY
+          - DOCUMENT_TYPE
+          - DOCUMENT_CATEGORY_DOCUMENT_TYPE
+          - EXTL_CLNT_APP_CONFIGURABLE_POLICIES
+          - EXTL_CLNT_APP_GLOBAL_OAUTH_SETTINGS
+          - EXTL_CLNT_APP_OAUTH_CONFIGURABLE_POLICIES
+          - EXTL_CLNT_APP_OAUTH_SETTINGS
+          - FUNDRAISING_CONFIG
+          - GEN_AI_PROMPT_TEMPLATE
+          - GEN_AI_PROMPT_TEMPLATE_ACTV
+          - MANAGED_EVENT_SUBSCRIPTION
+          - OAUTH_TOKEN_EXCHANGE_HANDLER
+          - OMNI_EXT_TRACKING_DEF
+          - OMNI_TRACKING_GROUP
+          - PARTICIPANT_ROLE
+          - RECORD_AGGREGATION_DEFINITION
+          - REGISTERED_EXTERNAL_SERVICE
+          - RELATED_RECORD_ASSOC_CRITERIA
+          - WEB_STORE_BUNDLE
+          - ACTIONABLE_LIST_DEFINITION
+          - AFFINITY_SCORE_DEFINITION
+          - AI_SCORING_MODEL_DEFINITION
+          - BOT_BLOCK
+          - CLAIM_FINANCIAL_SETTINGS
+          - CONVERSATION_MESSAGE_DEFINITION
+          - CUSTOM_INDEX
+          - DIGITAL_EXPERIENCE_BUNDLE
+          - DIGITAL_EXPERIENCE_CONFIG
+          - ENABLEMENT_MEASURE_DEFINITION
+          - ENABLEMENT_PROGRAM_DEFINITION
+          - GEN_AI_FUNCTION
+          - GEN_AI_PLANNER
+          - PERSON_ACCOUNT_OWNER_POWER_USER
+          - SEARCH_CUSTOMIZATION
+          - SEARCH_ORG_WIDE_OBJECT_CONFIG
+          - USER_PROFILE_SEARCH_SCOPE
+          - CHOICE_LIST
+          - CONTEXT_DEFINITION
+          - CONVERSATION_VENDOR_INFO
+          - ENBL_PROGRAM_TASK_SUB_CATEGORY
+          - EXPRESSION_SET_MESSAGE_TOKEN
+          - EXTERNAL_AUTH_IDENTITY_PROVIDER
+          - EXTERNAL_CLIENT_APPLICATION
+          - GEN_AI_PLUGIN
+          - GEN_AI_PLUGIN_INSTRUCTION_DEF
+          - LEARNING_ITEM_TYPE
+          - MOBILE_SECURITY_ASSIGNMENT
+          - MOBILE_SECURITY_POLICY
+          - MOB_SECURITY_CERT_PIN_CONFIG
+          - PUBLIC_KEY_CERTIFICATE
+          - PUBLIC_KEY_CERTIFICATE_SET
+          - UI_FORMAT_SPECIFICATION_SET
+          - WAVE_ANALYTIC_ASSET_COLLECTION
+          - DATA_OBJECT_SEARCH_INDEX_CONF
+          - EXPERIENCE_PROPERTY_TYPE_BUNDLE
+          - CUSTOM_FIELD_DISPLAY
+          - PRICING_ACTION_PARAMETERS
+          - PRICING_RECIPE
+          - ANALYTICS_DASHBOARD
+          - ANALYTICS_VISUALIZATION
+          - ANALYTICS_WORKSPACE
+          - APP_FRAMEWORK_TEMPLATE_BUNDLE
+          - CALL_CENTER_ROUTING_MAP
+          - CONTENT_TYPE_BUNDLE
+          - CONV_INTELLIGENCE_SIGNAL_RULE
+          - EXTL_CLNT_APP_MOBILE_CONFIGURABLE_POLICIES
+          - EXTL_CLNT_APP_MOBILE_SETTINGS
+          - EXTL_CLNT_APP_NOTIFICATION_SETTINGS
+          - EXTL_CLNT_APP_PUSH_CONFIGURABLE_POLICIES
+          - EXTL_CLNT_APP_PUSH_SETTINGS
+          - EXTL_CLNT_APP_SAML_CONFIGURABLE_POLICIES
+          - GEN_AI_PLANNER_BUNDLE
+          - LIGHTNING_TYPE_BUNDLE
+          - OMNI_INTERACTION_ACCESS_CONFIG
+          - LIGHTNING_OUT_APP
+          - DIGITAL_ASSET_MANAGEMENT_PROVIDER
+          - DIGITAL_ASSET_MANAGEMENT_PROVIDER_LIGHTNING_CMPNT
+          - INVOCABLE_ACTION_EXTENSION
+        fileName:
+          type: string
+        objectType:
+          type: string
+        lastModifiedDate:
+          type: string
+          format: date-time
+        namespacePrefix:
+          type: string
+        dependencies:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexSalesforceObject'
+        objectPath:
+          type: string
+        excluded:
+          type: boolean
+        objectId:
+          type: string
+        dependentProfileSupport:
+          type: boolean
+        rowKey:
+          type: string
+        subcomponentState:
+          type: string
+          enum:
+          - NEW
+          - MODIFIED
+          - DELETED
+        objectName:
+          type: string
+        fileState:
+          type: string
+          enum:
+          - NEW
+          - MODIFIED
+          - DELETED
+        localFilePath:
+          type: string
+        tempRemoteCloneFilePath:
+          type: string
+        localDiffFilePath:
+          type: string
+        createdById:
+          type: string
+        createdByName:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedById:
+          type: string
+        lastModifiedByName:
+          type: string
+        manageableState:
+          type: string
+        newFilePath:
+          type: string
+        metadataCounterpartExists:
+          type: boolean
+        diffFilePath:
+          type: string
+          writeOnly: true
+        subComponentName:
+          type: string
+        subComponentType:
+          type: string
+        subComponentContent:
+          type: string
+        sourceSubComponentContent:
+          type: string
+        subComponentSupport:
+          type: boolean
+    ListFlexSalesforceObject:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/FlexSalesforceObject'
+    PopulateFromSalesforceRequestPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        accountCode:
+          type: string
+    ListProjectStreamPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ProjectStreamPojo'
+    ProjectVersionPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        isActive:
+          type: boolean
+        projectVersionName:
+          type: string
+        scmRevision:
+          type: string
+        inactivatedBy:
+          type: string
+        inactivatedOn:
+          type: string
+          format: date-time
+        inactivatedReason:
+          type: string
+        projectStreamId:
+          type: integer
+          format: int64
+        requestAllFiles:
+          type: boolean
+        projectVersionId:
+          type: integer
+          format: int64
+    ListProjectVersionPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ProjectVersionPojo'
+    CompleteApprovalGatePOJO:
+      type: object
+      properties:
+        status:
+          type: string
+        releaseId:
+          type: integer
+          format: int64
+        gateName:
+          type: string
+        notes:
+          type: string
+        snapshotId:
+          type: integer
+          format: int64
+        environmentId:
+          type: integer
+          format: int64
+    CompleteExternalGatePOJO:
+      type: object
+      properties:
+        status:
+          type: string
+        releaseId:
+          type: integer
+          format: int64
+        gateName:
+          type: string
+        notes:
+          type: string
+        snapshotId:
+          type: integer
+          format: int64
+        changeTicket:
+          type: string
+        environmentId:
+          type: integer
+          format: int64
+    ReleasePojo:
+      type: object
+      properties:
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyValuePojo'
+        description:
+          type: string
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseProjectsPojo'
+        releaseId:
+          type: integer
+          format: int64
+        releaseStatus:
+          type: string
+        releaseName:
+          type: string
+        pipelineId:
+          type: integer
+          format: int64
+        pipelineName:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        scheduleBuildExpression:
+          type: string
+    ReleaseProjectsPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        priority:
+          type: integer
+          format: int32
+        projectId:
+          type: integer
+          format: int64
+        projectStreamId:
+          type: integer
+          format: int64
+        projectGroups:
+          type: string
+        buildEnvironmentId:
+          type: integer
+          format: int64
+    ListReleasePojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ReleasePojo'
+    SnapshotPojo:
+      type: object
+      properties:
+        description:
+          type: string
+        snapshotVersions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotVersionPojo'
+        snapshotName:
+          type: string
+        snapshotStatus:
+          type: string
+        snapshotVariables:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotVariablePojo'
+        snapshotId:
+          type: integer
+          format: int64
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+    SnapshotVariablePojo:
+      type: object
+      properties:
+        dataType:
+          type: string
+        value:
+          type: string
+        description:
+          type: string
+        code:
+          type: string
+        updatedOn:
+          type: string
+    SnapshotVersionPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+        snapshotVersionStatus:
+          type: string
+        projectStreamId:
+          type: integer
+          format: int64
+        projectVersionId:
+          type: integer
+          format: int64
+    SnapshotInputPojo:
+      type: object
+      properties:
+        description:
+          type: string
+        action:
+          type: string
+        snapshotVersionInputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotVersionInputPojo'
+    SnapshotVersionInputPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+        forceBuild:
+          type: boolean
+        projectVersionId:
+          type: integer
+          format: int64
+        buildEnvironmentId:
+          type: integer
+          format: int64
+    GateExecutionPojo:
+      type: object
+      properties:
+        gateName:
+          type: string
+        gateType:
+          type: string
+        gateExecutionId:
+          type: integer
+          format: int64
+        gateStatus:
+          type: string
+        scheduledExecutionTime:
+          type: string
+        gateOrder:
+          type: integer
+          format: int32
+        startDate:
+          type: string
+        endDate:
+          type: string
+    PipelineExecutionPojo:
+      type: object
+      properties:
+        snapshotId:
+          type: integer
+          format: int64
+        pipelineExecutionId:
+          type: integer
+          format: int64
+        pipelineExecutionStatus:
+          type: string
+        pipelineStageExecutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelineStageExecutionPojo'
+        startDate:
+          type: string
+        endDate:
+          type: string
+    PipelineStageExecutionPojo:
+      type: object
+      properties:
+        environmentId:
+          type: integer
+          format: int64
+        environmentSortOrder:
+          type: integer
+          format: int32
+        stageExecutionId:
+          type: integer
+          format: int64
+        environmentCode:
+          type: string
+        environmentName:
+          type: string
+        currentGateName:
+          type: string
+        currentStepName:
+          type: string
+        stageExecutionStatus:
+          type: string
+        gateExecutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/GateExecutionPojo'
+        stepExecutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepExecutionPojo'
+        startDate:
+          type: string
+        endDate:
+          type: string
+    StepExecutionPojo:
+      type: object
+      properties:
+        stepName:
+          type: string
+        stepType:
+          type: string
+        stepExecutionId:
+          type: integer
+          format: int64
+        stepStatus:
+          type: string
+        stepOrder:
+          type: number
+          format: float
+        scheduledExecutionTime:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+    ListSnapshotPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/SnapshotPojo'
+    ApprovalTaskPojo:
+      type: object
+      properties:
+        status:
+          type: string
+        requestType:
+          type: string
+        notes:
+          type: string
+        externalSystemType:
+          type: string
+        externalSystemId:
+          type: integer
+          format: int64
+        externalId:
+          type: string
+        environmentId:
+          type: integer
+          format: int64
+        flexFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexField'
+        environmentName:
+          type: string
+        taskId:
+          type: integer
+          format: int64
+        requestorPath:
+          type: string
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+    ListApprovalTaskPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ApprovalTaskPojo'
+    ScheduledTaskPojo:
+      type: object
+      properties:
+        taskId:
+          type: integer
+          format: int64
+        status:
+          type: string
+        scheduledDate:
+          type: string
+        environmentId:
+          type: integer
+          format: int64
+        flexFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexField'
+        requestType:
+          type: string
+        notes:
+          type: string
+    ListScheduledTaskPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ScheduledTaskPojo'
+    EnvInstEndPointPojo:
+      type: object
+      properties:
+        endPointId:
+          type: integer
+          format: int64
+        resourceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        endPointName:
+          type: string
+        resourceNames:
+          type: array
+          items:
+            type: string
+    EnvironmentInstancePojo:
+      type: object
+      properties:
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyValuePojo'
+        isActive:
+          type: boolean
+        instanceId:
+          type: integer
+          format: int64
+        environmentId:
+          type: integer
+          format: int64
+        endPoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvInstEndPointPojo'
+    PostRefreshDataObject:
+      type: object
+      properties:
+        requestedStartTime:
+          type: string
+          format: date-time
+        postRefreshProjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostRefreshProjectDataObject'
+        postRefreshRequestId:
+          type: integer
+          format: int64
+        refreshedToEnvironmentId:
+          type: integer
+          format: int64
+        refreshedFromEnvironmentId:
+          type: integer
+          format: int64
+        stopOnError:
+          type: boolean
+        targetGroupId:
+          type: integer
+          format: int64
+    PostRefreshPackageObject:
+      type: object
+      properties:
+        hash:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+        filePath:
+          type: string
+        projectObjectId:
+          type: integer
+          format: int64
+        sequenceNumber:
+          type: integer
+          format: int32
+        scmRevision:
+          type: string
+        projectVersionId:
+          type: integer
+          format: int64
+        packageObjectId:
+          type: integer
+          format: int64
+        destructive:
+          type: boolean
+    PostRefreshProjectDataObject:
+      type: object
+      properties:
+        priority:
+          type: integer
+          format: int32
+        projectId:
+          type: integer
+          format: int64
+        projectName:
+          type: string
+        syncProjectVersionId:
+          type: integer
+          format: int64
+        refreshProjectVersionId:
+          type: integer
+          format: int64
+        isPartialDeploy:
+          type: boolean
+        syncPackageObjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostRefreshPackageObject'
+        refreshPackageObjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostRefreshPackageObject'
+        projectPath:
+          type: string
+    PostRefreshRequestPojo:
+      type: object
+      properties:
+        refreshEnvironmentId:
+          type: integer
+          format: int64
+        requestedStartDate:
+          type: string
+    AccountInstancePojo:
+      type: object
+      properties:
+        name:
+          type: string
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyValuePojo'
+        provider:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+        code:
+          type: string
+        instanceId:
+          type: integer
+          format: int64
+    ListAccountInstancePojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/AccountInstancePojo'
+    CMSInstancePojo:
+      type: object
+      properties:
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyValuePojo'
+        description:
+          type: string
+        isActive:
+          type: boolean
+        instanceId:
+          type: integer
+          format: int64
+        cmsSystemId:
+          type: integer
+          format: int64
+        instanceCode:
+          type: string
+        instanceName:
+          type: string
+    ListCMSInstancePojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/CMSInstancePojo'
+    ITSInstancePojo:
+      type: object
+      properties:
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyValuePojo'
+        description:
+          type: string
+        isActive:
+          type: boolean
+        instanceId:
+          type: integer
+          format: int64
+        instanceCode:
+          type: string
+        instanceName:
+          type: string
+        issueTrackingSystemId:
+          type: integer
+          format: int64
+    ListITSInstancePojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/ITSInstancePojo'
+    SCMInstancePojo:
+      type: object
+      properties:
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyValuePojo'
+        description:
+          type: string
+        isActive:
+          type: boolean
+        instanceId:
+          type: integer
+          format: int64
+        instanceCode:
+          type: string
+        instanceName:
+          type: string
+        scmType:
+          type: string
+    ListSCMInstancePojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/SCMInstancePojo'
+    FlexUserProfile:
+      type: object
+      properties:
+        email:
+          type: string
+        userName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        userInternalId:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        userLocale:
+          type: object
+          properties:
+            language:
+              type: string
+            script:
+              type: string
+            variant:
+              type: string
+            country:
+              type: string
+            unicodeLocaleAttributes:
+              uniqueItems: true
+              type: array
+              items:
+                type: string
+            unicodeLocaleKeys:
+              uniqueItems: true
+              type: array
+              items:
+                type: string
+            displayLanguage:
+              type: string
+            displayScript:
+              type: string
+            displayCountry:
+              type: string
+            displayVariant:
+              type: string
+            displayName:
+              type: string
+            extensionKeys:
+              uniqueItems: true
+              type: array
+              items:
+                type: string
+            iso3Language:
+              type: string
+            iso3Country:
+              type: string
+        userTimeZone:
+          type: object
+          properties:
+            id:
+              type: string
+            displayName:
+              type: string
+            dstsavings:
+              type: integer
+              format: int32
+            rawOffset:
+              type: integer
+              format: int32
+        userDateFormat:
+          type: string
+        userTimeFormat:
+          type: string
+    CodeValueInputPOJO:
+      type: object
+      properties:
+        value:
+          type: string
+        code:
+          type: string
+        encrypted:
+          type: boolean
+    WorkflowExecutionDataObject:
+      type: object
+      properties:
+        createdBy:
+          type: string
+          readOnly: true
+        startTime:
+          type: string
+          format: date-time
+        projectId:
+          type: integer
+          format: int64
+        updatedOn:
+          type: string
+          format: date-time
+          readOnly: true
+        workflowRequestId:
+          type: integer
+          format: int64
+        workflowId:
+          type: integer
+          format: int64
+        instanceId:
+          type: integer
+          format: int64
+        environmentId:
+          type: integer
+          format: int64
+        projectVersionId:
+          type: integer
+          format: int64
+        workflowExecutionId:
+          type: integer
+          format: int64
+        dockerImageName:
+          type: string
+        endTime:
+          type: string
+          format: date-time
+        executionStatus:
+          type: string
+        parentWorkflowExecutionId:
+          type: integer
+          format: int64
+        workflowVersionId:
+          type: integer
+          format: int64
+        workflowState:
+          type: string
+        abortedOn:
+          type: string
+          format: date-time
+        workflowExecutionOutputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeValueInputPOJO'
+        abortedBy:
+          type: string
+        reviewStatus:
+          type: string
+        rolledBackWfExecId:
+          type: integer
+          format: int64
+        versionNumber:
+          type: integer
+          format: int32
+        updatedBy:
+          type: string
+          readOnly: true
+        createdOn:
+          type: string
+          format: date-time
+          readOnly: true
+        predeployWorkflowExecId:
+          type: integer
+          format: int64
+        projectWorkflowId:
+          type: integer
+          format: int64
+        workflowType:
+          type: string
+    ListWorkflowExecutionDataObjectPojo:
+      type: array
+      properties:
+        empty:
+          type: boolean
+      items:
+        $ref: '#/components/schemas/WorkflowExecutionDataObject'
+    WorkflowRequestPojo:
+      type: object
+      properties:
+        packageName:
+          type: string
+        projectId:
+          type: integer
+          format: int64
+        folderName:
+          type: string
+        folderId:
+          type: integer
+          format: int64
+        projectVersionName:
+          type: string
+        projectStreamId:
+          type: integer
+          format: int64
+        requestAllFiles:
+          type: boolean
+        requestedStartTime:
+          type: string
+          format: date-time
+        workflowRequestId:
+          type: integer
+          format: int64
+        projectName:
+          type: string
+        environmentId:
+          type: integer
+          format: int64
+        force:
+          type: boolean
+        flexFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlexField'
+        projectVersionId:
+          type: integer
+          format: int64
+        workflowRequestStatus:
+          type: string
+        exceptionToWindow:
+          type: boolean
+        stopOnPackageError:
+          type: boolean
+        workflowOverrideVersion:
+          type: integer
+          format: int64
+        requestedBy:
+          type: string
+        releaseDefinitionId:
+          type: integer
+          format: int64
+        releaseSnapshotId:
+          type: integer
+          format: int64
+        cmsissues:
+          type: string
+        folderPath:
+          type: string
+  securitySchemes:
+    Basic:
+      type: http
+      scheme: basic
